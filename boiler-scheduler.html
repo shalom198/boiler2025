@@ -592,6 +592,31 @@
         let fileName = 'schedule.txt';
         const port = 11111;
 
+        function date() {
+            let currentDateTime = new Date();
+            let currentDate = ('0' + currentDateTime.getDate()).slice(-2) + '-' +
+                ('0' + (currentDateTime.getMonth() + 1)).slice(-2) + '-' +
+                currentDateTime.getFullYear();
+            return currentDate;
+        }
+
+        function time() {
+            let currentDateTime = new Date();
+            let currentTime = ('0' + currentDateTime.getHours()).slice(-2) + ':' +
+                ('0' + currentDateTime.getMinutes()).slice(-2) + ':' +
+                ('0' + currentDateTime.getSeconds()).slice(-2);
+            return currentTime;
+        }
+
+		function clearName(name) {
+			// בודק אם השם מכיל אנדרסקור
+			if (name && name.includes('_')) {
+				// חותך את השם עד לתו האנדרסקור הראשון
+				name = name.split('_')[0];
+			}
+			return name;
+		}
+
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                 const r = Math.random() * 16 | 0;
@@ -599,28 +624,24 @@
                 return v.toString(16);
             });
         }
+
+        function reqFromEsp(req) {
+            console.log(date(), time(), "req from ESP:", req);
+            sendWebSocketMessage({
+                type: req,
+                espId: espId,
+                userId: userId,
+                device: 'USER',
+            });
+        }
+
         
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            // Load settings from localStorage (passed from main page)
-            <!-- const storedSettings = localStorage.getItem('boilerSettings'); -->
-            <!-- if (storedSettings) { -->
-                <!-- const settings = JSON.parse(storedSettings); -->
-                <!-- espId = settings.espId; -->
-                <!-- userId = settings.userId; -->
-                <!-- // Connect to WebSocket -->
-                <!-- connectWebSocket(); -->
-                <!-- loadPrograms(); -->
-            <!-- } else { -->
-                <!-- alert('שגיאה: לא נמצאו נתוני התחברות'); -->
-                <!-- navigateBack(); -->
-            <!-- } -->
-            
-            // Set up event listeners
 			connectWebSocket();
-			loadPrograms();
-            setupEventListeners();
-        });
+			setTimeout(() => {loadPrograms();}, 1000); // השהיה של 1 שנייה
+			setupEventListeners();
+		});
         
         function setupEventListeners() {
             // Back button
@@ -713,8 +734,8 @@
             dayButtons.forEach(button => {
                 selectedDays.push(parseInt(button.dataset.day));
             });
-            const daysMap = allDays.reduce((acc, day) => {
-                acc[day] = selectedDays.includes(day);
+            const daysMap = selectedDays.reduce((acc, day) => {
+                acc[day] = 1;
                 return acc;
             }, {});
             // Temperatures
@@ -820,19 +841,19 @@
             
             socket.onopen = function() {
                 console.log('WebSocket connection opened');
-                document.getElementById('connectionStatus').textContent = 'מחובר';
+                document.getElementById('connectionStatus').textContent = 'מחובר לשרת';
                 document.getElementById('connectionStatus').classList.add('connected');
+
+                reqFromEsp("register");
+                reqFromEsp("getEspName");
+               
+                <!-- sendWebSocketMessage({ -->
+                    <!-- type: "register", -->
+                    <!-- espId: espId, -->
+                    <!-- userId: userId, -->
+                    <!-- device: 'USER' -->
+                <!-- }); -->
                 
-                // Register with the server
-                sendWebSocketMessage({
-                    type: "register",
-                    espId: espId,
-                    userId: userId,
-                    device: 'USER'
-                });
-                
-                // Load programs
-                loadPrograms();
             };
             
             socket.onmessage = function(e) {
@@ -848,9 +869,22 @@
                         alert('התוכניות נשמרו בהצלחה!');
                         loadPrograms(); // Reload to confirm save
                         break;
-                        
-                    default:
-                        console.log('Unhandled message type:', msg.type);
+                case "espName":
+                    console.log("get the name:", msg.espName);
+                    document.getElementById('connectionStatus').textContent = clearName(msg.espName);
+                   // document.getElementById('heaterClientName').innerText =clearName(message.espName);
+                    break;
+                    
+                case "espMessage":
+                    console.log("espMessage:", msg.message);
+                    break;
+                    
+                case "status":
+                    console.log("Server status:", msg);
+                    break;
+                    
+                 default:
+                    console.log('Unhandled message type:', msg.type);
                 }
             };
             
