@@ -527,7 +527,7 @@
                 <div class="temp-group">
                     <label>הפרש טמפ'</label>
                     <div class="temp-input">
-                        <input type="number" id="diffTemp" min="0" max="10" value="3">
+                        <input type="number" id="diffTemp" min="0" max="10" value="1">
                         <span>&#x2103;</span>
                     </div>
                 </div>
@@ -1036,14 +1036,14 @@
                         </div>
                     </div>
                     <div>
-                        <div><strong>מצב:</strong> ${program.ACT === 1 ? 'פעיל' : 'לא פעיל'}</div>
                         <div><strong>טמפרטורות:</strong> עליון ${program.DATA.RT}°C, אמצעי ${program.DATA.RM}°C, תחתון ${program.DATA.RB}°C</div>
                         <div><strong>הפרש:</strong> ${program.DATA.D}°C</div>
+                        <div><strong>פקודה:</strong> ${program.ACT === 1 ? 'הדלק' : 'כבה' }</div>
                         <div><strong>מצב דוד:</strong> ${program.DATA.F === 1 ? 'שומר חום' : 'חד פעמי'}</div>
                         <div><strong>ברז מים:</strong> ${program.DATA.T === 1 ? 'פתוח' : 'סגור'}</div>
                     </div>
                 `;
-                
+																		 
                 container.appendChild(card);
                 
                 // Add event listeners for edit and delete buttons
