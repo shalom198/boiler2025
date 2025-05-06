@@ -785,6 +785,7 @@
             
             // Hide form
             hideNewProgramForm();
+			loadPrograms();
         }
         
         function editProgram(programId) {
@@ -833,6 +834,7 @@
             if (confirm('האם אתה בטוח שברצונך למחוק תוכנית זו?')) {
                 delete programs[programId];
                 saveToServer();
+				loadPrograms();
             }
         }
         
